@@ -32,11 +32,11 @@ class FastMCP:
         return decorator
 
     def _register_base_routes(self):
-        @self.app.get("/")
+        @self.app.api_route("/", methods=["GET", "HEAD"])
         def root():
             return JSONResponse(content={"status": "ok", "name": self.name})
 
-        @self.app.get("/health")
+        @self.app.api_route("/health", methods=["GET", "HEAD"])
         def health():
             return JSONResponse(content={"status": "ok"})
 
@@ -47,3 +47,4 @@ class FastMCP:
                 "resources": list(self.resources.keys()),
                 "prompts": list(self.prompts.keys()),
             })
+

@@ -190,4 +190,4 @@ Please present both detailed information about each paper and a high-level synth
 
 if __name__ == "__main__":
     # Initialize and run the server
-    mcp.run(transport='stdio')
+    mcp.run(host="0.0.0.0", port=8080)

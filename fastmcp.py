@@ -33,5 +33,17 @@ class FastMCP:
 
     def _register_base_routes(self):
         @self.app.get("/")
-        def health_check():
+        def root():
             return JSONResponse(content={"status": "ok", "name": self.name})
+
+        @self.app.get("/health")
+        def health():
+            return JSONResponse(content={"status": "ok"})
+
+        @self.app.get("/config")
+        def config():
+            return JSONResponse(content={
+                "tools": list(self.tools.keys()),
+                "resources": list(self.resources.keys()),
+                "prompts": list(self.prompts.keys()),
+            })

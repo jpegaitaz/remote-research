@@ -57,15 +57,15 @@ class FastMCP:
         @self.app.get("/sse")
         async def sse_stream(request: Request):
             """
-            A basic Server-Sent Events stream endpoint. 
-            Replace this with your tool dispatch or chat streaming logic.
+            A basic Server-Sent Events endpoint.
+            You can enhance this to stream real tool/prompt responses later.
             """
-
             async def event_generator():
-                yield "retry: 1000\n\n"  # instruct client to retry every 1s
+                yield "retry: 1000\n\n"  # recommend retry delay
                 count = 0
                 while not await request.is_disconnected():
-                    yield f"data: {json.dumps({'message': f'Ping {count}'})}\n\n"
+                    msg = {"event": "message", "data": f"Ping {count}"}
+                    yield f"data: {json.dumps(msg)}\n\n"
                     await asyncio.sleep(2)
                     count += 1
                 yield "event: close\ndata: connection closed\n\n"

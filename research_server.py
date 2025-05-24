@@ -8,7 +8,7 @@ from fastmcp import FastMCP
 PAPER_DIR = "papers"
 
 # Initialize FastMCP server
-mcp = FastMCP("research", stateless_http=True)
+mcp = FastMCP("research", stateless_http=False)
 
 @mcp.tool()
 def search_papers(topic: str, max_results: int = 5) -> List[str]:
@@ -139,5 +139,5 @@ Please present both detailed information about each paper and a high-level synth
 # 🚀 Run server in a Render-compatible way
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.environ.get("PORT", 8080))  # Render sets the PORT env variable
+    port = int(os.environ.get("PORT", 8080))
     uvicorn.run(mcp.app, host="0.0.0.0", port=port)

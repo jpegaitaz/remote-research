@@ -1,5 +1,7 @@
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse, StreamingResponse
+import asyncio
+import json
 
 class FastMCP:
     def __init__(self, name: str, stateless_http: bool = False):
@@ -11,6 +13,9 @@ class FastMCP:
         self.prompts = {}
 
         self._register_base_routes()
+
+        if not self.stateless_http:
+            self._register_streamable_routes()
 
     def tool(self):
         def decorator(func):
@@ -48,3 +53,21 @@ class FastMCP:
                 "prompts": list(self.prompts.keys()),
             })
 
+    def _register_streamable_routes(self):
+        @self.app.get("/sse")
+        async def sse_stream(request: Request):
+            """
+            A basic Server-Sent Events stream endpoint. 
+            Replace this with your tool dispatch or chat streaming logic.
+            """
+
+            async def event_generator():
+                yield "retry: 1000\n\n"  # instruct client to retry every 1s
+                count = 0
+                while not await request.is_disconnected():
+                    yield f"data: {json.dumps({'message': f'Ping {count}'})}\n\n"
+                    await asyncio.sleep(2)
+                    count += 1
+                yield "event: close\ndata: connection closed\n\n"
+
+            return StreamingResponse(event_generator(), media_type="text/event-stream")

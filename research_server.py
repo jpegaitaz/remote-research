@@ -4,10 +4,9 @@ import os
 from typing import List
 from fastmcp import FastMCP
 
-
 PAPER_DIR = "papers"
 
-# Initialize FastMCP server
+# Initialize FastMCP server with streamable HTTP (Render-compatible)
 mcp = FastMCP("research", stateless_http=False)
 
 @mcp.tool()

@@ -13,7 +13,6 @@ class FastMCP:
         self.prompts = {}
 
         self._register_base_routes()
-
         if not self.stateless_http:
             self._register_streamable_routes()
 
@@ -56,15 +55,14 @@ class FastMCP:
     def _register_streamable_routes(self):
         @self.app.get("/sse")
         async def sse_stream(request: Request):
-            """
-            A basic Server-Sent Events endpoint.
-            You can enhance this to stream real tool/prompt responses later.
-            """
             async def event_generator():
-                yield "retry: 1000\n\n"  # recommend retry delay
+                yield "retry: 1000\n\n"
                 count = 0
                 while not await request.is_disconnected():
-                    msg = {"event": "message", "data": f"Ping {count}"}
+                    msg = {
+                        "event": "ping",
+                        "data": f"Ping {count}"
+                    }
                     yield f"data: {json.dumps(msg)}\n\n"
                     await asyncio.sleep(2)
                     count += 1

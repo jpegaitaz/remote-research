@@ -63,6 +63,25 @@ class FastMCP:
                 "prompts": list(self.prompts.keys()),
             })
 
+        @self.app.post("/chat")
+        async def chat_handler(req: Request):
+            data = await req.json()
+            query = data.get("query")
+            print(f"🛠️ Received POST to /chat: {data}")
+
+            if not query:
+                return JSONResponse({"reply": "⚠️ No query provided"}, status_code=400)
+
+            try:
+                from mcp_chatbot import MCP_ChatBot
+                bot = MCP_ChatBot()
+                await bot.connect_to_servers()
+                reply = await bot.chat_once(query)
+                await bot.cleanup()
+                return JSONResponse({"reply": reply})
+            except Exception as e:
+                return JSONResponse({"reply": f"❌ Error: {str(e)}"}, status_code=500)
+
     def _register_streamable_routes(self):
         @self.app.get("/sse")
         async def sse_stream(request: Request):

@@ -3,6 +3,7 @@ import json
 import os
 from typing import List
 from fastmcp import FastMCP
+from fastapi import Request  # Needed for dummy /chat handler
 
 PAPER_DIR = "papers"
 
@@ -134,6 +135,13 @@ Follow these instructions:
 4. Organize your findings in a clear, structured format with headings and bullet points for easy readability.
 
 Please present both detailed information about each paper and a high-level synthesis of the research landscape in {topic}."""
+
+# ✅ Optional: Add fallback /chat route to handle POSTs from clients like Claude Desktop
+@mcp.app.post("/chat")
+async def chat_handler(request: Request):
+    body = await request.json()
+    print("🛠️ Received POST to /chat:", body)
+    return {"message": "This endpoint is a placeholder. Your server is online and responding."}
 
 # 🚀 Run server in a Render-compatible way
 if __name__ == "__main__":

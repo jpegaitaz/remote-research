@@ -1,24 +1,21 @@
 {
     "mcpServers": {
-        
-        "filesystem": {
-            "command": "npx",
-            "args": [
-                "-y",
-                "@modelcontextprotocol/server-filesystem",
-                "."
-            ]
-        },
-        
-        "research": {
-            "command": "uv",
-            "args": ["run", "research_server.py"]
-        },
-        
-        "fetch": {
-            "command": "uvx",
-            "args": ["mcp-server-fetch"]
-        }
+      "research": {
+        "transport": "http",
+        "url": "https://remote-research-errs.onrender.com"
+      },
+      "filesystem": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-filesystem",
+          "."
+        ]
+      },
+      "fetch": {
+        "command": "uvx",
+        "args": ["mcp-server-fetch"]
+      }
     }
-}
+  }
   

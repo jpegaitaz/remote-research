@@ -5,6 +5,7 @@ fastapi
     # via pydantic
     # via pydantic-settings
     # via uvicorn
+fastmcp==2.5.1
 annotated-types==0.7.0
     # via pydantic
 anthropic==0.52.0
@@ -50,7 +51,7 @@ idna==3.10
     #   requests
 jiter==0.10.0
     # via anthropic
-mcp==1.9.1
+mcp==1.9.2.dev7+f2f4dbd
     # via mcp-project (pyproject.toml)
 nest-asyncio==1.6.0
     # via mcp-project (pyproject.toml)

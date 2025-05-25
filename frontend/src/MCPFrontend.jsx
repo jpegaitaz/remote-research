@@ -3,13 +3,14 @@ import { useEffect, useState } from "react";
 export default function MCPFrontend() {
   const [pingLog, setPingLog] = useState([]);
   const [connected, setConnected] = useState(false);
+  const [query, setQuery] = useState("");
+  const [response, setResponse] = useState("");
 
   useEffect(() => {
     const eventSource = new EventSource("https://remote-research-errs.onrender.com/sse");
 
     eventSource.onopen = () => {
       setConnected(true);
-      console.log("✅ Connected to MCP SSE stream");
     };
 
     eventSource.onmessage = (event) => {
@@ -28,24 +29,57 @@ export default function MCPFrontend() {
       setConnected(false);
     };
 
-    return () => {
-      eventSource.close();
-    };
+    return () => eventSource.close();
   }, []);
 
+  const handleSubmit = async () => {
+    const res = await fetch("https://remote-research-errs.onrender.com/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
+    });
+
+    const data = await res.json();
+    setResponse(data.reply || "❌ No response from agent");
+  };
+
   return (
-    <div style={{ padding: "1rem", fontFamily: "Arial" }}>
-      <h1>🔍 MCP Frontend Diagnostic</h1>
-      <p>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-2">🔍 MCP Chat Test</h1>
+      <p className="mb-4">
         Status:{" "}
-        <strong style={{ color: connected ? "green" : "red" }}>
-          {connected ? "Connected" : "Disconnected"}
-        </strong>
+        {connected ? (
+          <span className="text-green-600">Connected</span>
+        ) : (
+          <span className="text-red-600">Disconnected</span>
+        )}
       </p>
-      <h3>Ping Log:</h3>
-      <ul>
-        {pingLog.map((ping, i) => (
-          <li key={i}>{ping}</li>
+
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Ask the MCP agent..."
+        className="p-2 border border-gray-300 rounded w-full mb-2"
+      />
+      <button
+        onClick={handleSubmit}
+        className="bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        Send
+      </button>
+
+      <div className="mt-4">
+        <h2 className="font-semibold">Agent Reply:</h2>
+        <pre className="bg-gray-100 p-2 rounded">{response}</pre>
+      </div>
+
+      <hr className="my-4" />
+
+      <h2 className="font-semibold mb-2">Ping Log:</h2>
+      <ul className="text-sm pl-4 list-disc">
+        {pingLog.map((ping, idx) => (
+          <li key={idx}>{ping}</li>
         ))}
       </ul>
     </div>

@@ -2,7 +2,7 @@ import os
 import json
 import arxiv
 from typing import List
-from fastmcp import FastMCP
+from fastestmcp import FastMCP
 
 PAPER_DIR = "papers"
 

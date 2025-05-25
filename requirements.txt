@@ -51,7 +51,7 @@ idna==3.10
     #   requests
 jiter==0.10.0
     # via anthropic
-mcp==1.9.2
+mcp==1.9.1
     # via mcp-project (pyproject.toml)
 nest-asyncio==1.6.0
     # via mcp-project (pyproject.toml)

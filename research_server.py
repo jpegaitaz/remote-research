@@ -130,6 +130,7 @@ Finish with:
 - Notable impactful papers
 """
 
-# ✅ Main entrypoint: run with HTTP support for Render and local use
 if __name__ == "__main__":
-    mcp.run(transport="http")
+    import uvicorn
+    port = int(os.environ.get("PORT", 8080))
+    uvicorn.run(mcp.app, host="0.0.0.0", port=port)

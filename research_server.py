@@ -145,6 +145,6 @@ Please present both detailed information about each paper and a high-level synth
 
 # 🚀 Start MCP server
 if __name__ == "__main__":
-    from fastmcp import FastMCP
-
-    mcp.run(transport="http") 
+    import uvicorn
+    port = int(os.environ.get("PORT", 8080))
+    uvicorn.run(mcp.app, host="0.0.0.0", port=port)

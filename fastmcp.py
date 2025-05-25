@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 import asyncio
 import json
 
@@ -8,6 +9,16 @@ class FastMCP:
         self.name = name
         self.stateless_http = stateless_http
         self.app = FastAPI(title=f"{name} MCP")
+
+        # ✅ Enable CORS for all origins (you can restrict to your frontend domain if needed)
+        self.app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+
         self.tools = {}
         self.resources = {}
         self.prompts = {}

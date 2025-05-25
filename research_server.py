@@ -2,17 +2,17 @@ import arxiv
 import json
 import os
 from typing import List
-from fastmcp import FastMCP  # ✅ Updated to match local fastmcp with CORS
+from fastmcp import FastMCP  # ✅ Streamable HTTP-compatible MCP server
 
 PAPER_DIR = "papers"
 
-# ✅ Initialize FastMCP server for Render with streamable HTTP
+# ✅ Initialize FastMCP for Render deployment (streamable HTTP)
 mcp = FastMCP("research", stateless_http=False)
 
 @mcp.tool()
 def search_papers(topic: str, max_results: int = 5) -> List[str]:
     """
-    Search for papers on arXiv based on a topic and store their information.
+    Search arXiv for papers by topic and store results.
     """
     client = arxiv.Client()
     search = arxiv.Search(query=topic, max_results=max_results, sort_by=arxiv.SortCriterion.Relevance)
@@ -48,7 +48,7 @@ def search_papers(topic: str, max_results: int = 5) -> List[str]:
 @mcp.tool()
 def extract_info(paper_id: str) -> str:
     """
-    Search for information about a specific paper across all topic directories.
+    Extract details of a specific paper across saved topics.
     """
     for item in os.listdir(PAPER_DIR):
         item_path = os.path.join(PAPER_DIR, item)
@@ -60,42 +60,38 @@ def extract_info(paper_id: str) -> str:
                         papers_info = json.load(json_file)
                         if paper_id in papers_info:
                             return json.dumps(papers_info[paper_id], indent=2)
-                except (FileNotFoundError, json.JSONDecodeError) as e:
-                    print(f"Error reading {file_path}: {str(e)}")
+                except (FileNotFoundError, json.JSONDecodeError):
                     continue
-
-    return f"There's no saved information related to paper {paper_id}."
+    return f"No saved information found for paper ID: {paper_id}."
 
 @mcp.resource("papers://folders")
 def get_available_folders() -> str:
     """
-    List all available topic folders in the papers directory.
+    Return a list of all available saved topic folders.
     """
     folders = []
     if os.path.exists(PAPER_DIR):
         for topic_dir in os.listdir(PAPER_DIR):
-            topic_path = os.path.join(PAPER_DIR, topic_dir)
-            if os.path.isdir(topic_path):
-                papers_file = os.path.join(topic_path, "papers_info.json")
-                if os.path.exists(papers_file):
+            if os.path.isdir(os.path.join(PAPER_DIR, topic_dir)):
+                if os.path.exists(os.path.join(PAPER_DIR, topic_dir, "papers_info.json")):
                     folders.append(topic_dir)
 
     content = "# Available Topics\n\n"
-    content += "\n".join(f"- {folder}" for folder in folders) or "No topics found.\n"
+    content += "\n".join(f"- {folder}" for folder in folders) or "No topics found."
     if folders:
-        content += f"\n\nUse @{folders[0]} to access papers in that topic.\n"
+        content += f"\n\nUse @{folders[0]} to access papers in that topic."
     return content
 
 @mcp.resource("papers://{topic}")
 def get_topic_papers(topic: str) -> str:
     """
-    Get detailed information about papers on a specific topic.
+    Show all saved papers for a specific topic.
     """
     topic_dir = topic.lower().replace(" ", "_")
     papers_file = os.path.join(PAPER_DIR, topic_dir, "papers_info.json")
 
     if not os.path.exists(papers_file):
-        return f"# No papers found for topic: {topic}\n\nTry searching for papers on this topic first."
+        return f"# No papers found for topic: {topic}\n\nTry running `search_papers(topic='{topic}')` first."
 
     try:
         with open(papers_file, 'r') as f:
@@ -115,36 +111,34 @@ def get_topic_papers(topic: str) -> str:
 ---\n"""
         return content
     except json.JSONDecodeError:
-        return f"# Error reading papers data for {topic}\n\nThe papers data file is corrupted."
+        return f"# Error: Failed to load paper data for topic '{topic}'."
 
 @mcp.prompt()
 def generate_search_prompt(topic: str, num_papers: int = 5) -> str:
-    """Generate a prompt for Claude to find and discuss academic papers on a specific topic."""
+    """Generate an LLM prompt to search and summarize academic research."""
     return f"""Search for {num_papers} academic papers about '{topic}' using the search_papers tool. 
 
 Follow these instructions:
-1. First, search for papers using search_papers(topic='{topic}', max_results={num_papers})
-2. For each paper found, extract and organize the following information:
-   - Paper title
+1. Search using: `search_papers(topic='{topic}', max_results={num_papers})`
+2. Extract and organize:
+   - Title
    - Authors
-   - Publication date
-   - Brief summary of the key findings
-   - Main contributions or innovations
-   - Methodologies used
-   - Relevance to the topic '{topic}'
+   - Publication Date
+   - Key Findings Summary
+   - Main Contributions
+   - Methodologies
+   - Relevance to '{topic}'
+3. Provide:
+   - Research overview
+   - Common themes & trends
+   - Gaps / future directions
+   - Most impactful papers
 
-3. Provide a comprehensive summary that includes:
-   - Overview of the current state of research in '{topic}'
-   - Common themes and trends across the papers
-   - Key research gaps or areas for future investigation
-   - Most impactful or influential papers in this area
+Structure with headers & bullet points for clarity."""
 
-4. Organize your findings in a clear, structured format with headings and bullet points for easy readability.
-
-Please present both detailed information about each paper and a high-level synthesis of the research landscape in {topic}."""
-
-# 🚀 Start MCP server
+# ✅ Run as HTTP server (for Render or local testing)
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8080))
     uvicorn.run(mcp.app, host="0.0.0.0", port=port)
+

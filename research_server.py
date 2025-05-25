@@ -2,17 +2,18 @@ import arxiv
 import json
 import os
 from typing import List
-from fastmcp import FastMCP
-from fastapi import Request  # Needed for dummy /chat handler
+from fastmcp import FastMCP  # ✅ Updated to match local fastmcp with CORS
 
 PAPER_DIR = "papers"
 
-# Initialize FastMCP server with streamable HTTP (Render-compatible)
+# ✅ Initialize FastMCP server for Render with streamable HTTP
 mcp = FastMCP("research", stateless_http=False)
 
 @mcp.tool()
 def search_papers(topic: str, max_results: int = 5) -> List[str]:
-    """Search for papers on arXiv based on a topic and store their information."""
+    """
+    Search for papers on arXiv based on a topic and store their information.
+    """
     client = arxiv.Client()
     search = arxiv.Search(query=topic, max_results=max_results, sort_by=arxiv.SortCriterion.Relevance)
     papers = client.results(search)
@@ -46,7 +47,9 @@ def search_papers(topic: str, max_results: int = 5) -> List[str]:
 
 @mcp.tool()
 def extract_info(paper_id: str) -> str:
-    """Search for information about a specific paper across all topic directories."""
+    """
+    Search for information about a specific paper across all topic directories.
+    """
     for item in os.listdir(PAPER_DIR):
         item_path = os.path.join(PAPER_DIR, item)
         if os.path.isdir(item_path):
@@ -60,11 +63,14 @@ def extract_info(paper_id: str) -> str:
                 except (FileNotFoundError, json.JSONDecodeError) as e:
                     print(f"Error reading {file_path}: {str(e)}")
                     continue
+
     return f"There's no saved information related to paper {paper_id}."
 
 @mcp.resource("papers://folders")
 def get_available_folders() -> str:
-    """List all available topic folders in the papers directory."""
+    """
+    List all available topic folders in the papers directory.
+    """
     folders = []
     if os.path.exists(PAPER_DIR):
         for topic_dir in os.listdir(PAPER_DIR):
@@ -82,7 +88,9 @@ def get_available_folders() -> str:
 
 @mcp.resource("papers://{topic}")
 def get_topic_papers(topic: str) -> str:
-    """Get detailed information about papers on a specific topic."""
+    """
+    Get detailed information about papers on a specific topic.
+    """
     topic_dir = topic.lower().replace(" ", "_")
     papers_file = os.path.join(PAPER_DIR, topic_dir, "papers_info.json")
 
@@ -104,8 +112,7 @@ def get_topic_papers(topic: str) -> str:
 ### Summary
 {info['summary'][:500]}...
 
----
-\n"""
+---\n"""
         return content
     except json.JSONDecodeError:
         return f"# Error reading papers data for {topic}\n\nThe papers data file is corrupted."
@@ -136,15 +143,8 @@ Follow these instructions:
 
 Please present both detailed information about each paper and a high-level synthesis of the research landscape in {topic}."""
 
-# ✅ Optional: Add fallback /chat route to handle POSTs from clients like Claude Desktop
-@mcp.app.post("/chat")
-async def chat_handler(request: Request):
-    body = await request.json()
-    print("🛠️ Received POST to /chat:", body)
-    return {"message": "This endpoint is a placeholder. Your server is online and responding."}
-
-# 🚀 Run server in a Render-compatible way
+# 🚀 Start MCP server
 if __name__ == "__main__":
-    import uvicorn
-    port = int(os.environ.get("PORT", 8080))
-    uvicorn.run(mcp.app, host="0.0.0.0", port=port)
+    from fastmcp import FastMCP
+
+    mcp.run(transport="http") 
